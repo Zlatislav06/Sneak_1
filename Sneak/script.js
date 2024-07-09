@@ -1,0 +1,77 @@
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const grid = 20;
+let count = 0;
+let snake = [
+    { x: grid * 5, y: grid * 5 },
+];
+let direction = { x: 0, y: 0 };
+let food = getRandomFoodPosition();
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowUp" && direction.y === 0) {
+        direction = { x: 0, y: -grid };
+    } else if (e.key === "ArrowDown" && direction.y === 0) {
+        direction = { x: 0, y: grid };
+    } else if (e.key === "ArrowLeft" && direction.x === 0) {
+        direction = { x: -grid, y: 0 };
+    } else if (e.key === "ArrowRight" && direction.x === 0) {
+        direction = { x: grid, y: 0 };
+    }
+});
+
+function getRandomFoodPosition() {
+    return {
+        x: Math.floor(Math.random() * (canvas.width / grid)) * grid,
+        y: Math.floor(Math.random() * (canvas.height / grid)) * grid,
+    };
+}
+
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+
+    if (++count < 4) {
+        return;
+    }
+    count = 0;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    snake.unshift({
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y,
+    });
+
+    if (snake[0].x === food.x && snake[0].y === food.y) {
+        food = getRandomFoodPosition();
+    } else {
+        snake.pop();
+    }
+
+    if (
+        snake[0].x < 0 ||
+        snake[0].x >= canvas.width ||
+        snake[0].y < 0 ||
+        snake[0].y >= canvas.height ||
+        snake.slice(1).some(segment => segment.x === snake[0].x && segment.y === snake[0].y)
+    ) {
+        resetGame();
+    }
+
+    ctx.fillStyle = "red";
+    ctx.fillRect(food.x, food.y, grid - 1, grid - 1);
+
+    ctx.fillStyle = "lime";
+    snake.forEach(segment => ctx.fillRect(segment.x, segment.y, grid - 1, grid - 1));
+}
+
+function resetGame() {
+    snake = [
+        { x: grid * 5, y: grid * 5 },
+    ];
+    direction = { x: 0, y: 0 };
+    food = getRandomFoodPosition();
+}
+
+requestAnimationFrame(gameLoop);
